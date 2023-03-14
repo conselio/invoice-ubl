@@ -14,11 +14,17 @@ use Sabre\Xml\XmlDeserializable;
 
 class TaxSubTotal implements XmlSerializable, XmlDeserializable
 {
+
+    public $currencyID = 'EUR';
     private $taxableAmount;
     private $taxAmount;
     private $taxCategory;
     private $percent;
-    
+
+        public function __construct($currencyId = 'EUR')
+    {
+        $this->currencyID = $currencyId;
+    }
     /**
      * VAT category taxable amount
      * Example value: 1945.00
@@ -117,14 +123,14 @@ class TaxSubTotal implements XmlSerializable, XmlDeserializable
                 'name' => Schema::CBC . 'TaxableAmount',
                 'value' => number_format($this->taxableAmount, 2, '.', ''),
                 'attributes' => [
-                    'currencyID' => GenerateInvoice::$currencyID
+                    'currencyID' => $this->currencyID
                 ]
             ],
             [
                 'name' => Schema::CBC . 'TaxAmount',
                 'value' => number_format($this->taxAmount, 2, '.', ''),
                 'attributes' => [
-                    'currencyID' => GenerateInvoice::$currencyID
+                    'currencyID' => $this->currencyID
                 ]
             ]
         ]);

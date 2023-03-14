@@ -12,7 +12,7 @@ use Sabre\Xml\XmlDeserializable;
 class Price implements XmlSerializable, XmlDeserializable
 {
     private $priceAmount;
-    private $baseQuantity;
+    private $baseQuantity = 1;
     private $unitCode = UnitCode::UNIT;
 
     /**

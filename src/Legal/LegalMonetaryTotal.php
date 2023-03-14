@@ -11,11 +11,18 @@ use Sabre\Xml\XmlDeserializable;
 
 class LegalMonetaryTotal implements XmlSerializable, XmlDeserializable
 {
+    public $currencyID = 'EUR';
+
     private $lineExtensionAmount;
     private $taxExclusiveAmount;
     private $taxInclusiveAmount;
     private $allowanceTotalAmount = 0;
     private $payableAmount;
+
+    public function __construct($currencyId = 'EUR')
+    {
+        $this->currencyID = $currencyId;
+    }
 
     /**
      * @return float
@@ -120,7 +127,7 @@ class LegalMonetaryTotal implements XmlSerializable, XmlDeserializable
                 'name' => Schema::CBC . 'LineExtensionAmount',
                 'value' => number_format($this->lineExtensionAmount, 2, '.', ''),
                 'attributes' => [
-                    'currencyID' => GenerateInvoice::$currencyID
+                    'currencyID' => $this->currencyID
                 ]
 
             ],
@@ -128,7 +135,7 @@ class LegalMonetaryTotal implements XmlSerializable, XmlDeserializable
                 'name' => Schema::CBC . 'TaxExclusiveAmount',
                 'value' => number_format($this->taxExclusiveAmount, 2, '.', ''),
                 'attributes' => [
-                    'currencyID' => GenerateInvoice::$currencyID
+                    'currencyID' => $this->currencyID
                 ]
 
             ],
@@ -136,7 +143,7 @@ class LegalMonetaryTotal implements XmlSerializable, XmlDeserializable
                 'name' => Schema::CBC . 'TaxInclusiveAmount',
                 'value' => number_format($this->taxInclusiveAmount, 2, '.', ''),
                 'attributes' => [
-                    'currencyID' => GenerateInvoice::$currencyID
+                    'currencyID' => $this->currencyID
                 ]
 
             ],
@@ -144,7 +151,7 @@ class LegalMonetaryTotal implements XmlSerializable, XmlDeserializable
                 'name' => Schema::CBC . 'AllowanceTotalAmount',
                 'value' => number_format($this->allowanceTotalAmount, 2, '.', ''),
                 'attributes' => [
-                    'currencyID' => GenerateInvoice::$currencyID
+                    'currencyID' => $this->currencyID
                 ]
 
             ],
@@ -152,7 +159,7 @@ class LegalMonetaryTotal implements XmlSerializable, XmlDeserializable
                 'name' => Schema::CBC . 'PayableAmount',
                 'value' => number_format($this->payableAmount, 2, '.', ''),
                 'attributes' => [
-                    'currencyID' => GenerateInvoice::$currencyID
+                    'currencyID' => $this->currencyID
                 ]
             ],
         ]);

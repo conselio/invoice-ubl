@@ -1,15 +1,18 @@
 <?php
 
-namespace Pondersource\Invoice\Invoice;
+namespace Pondersource\Invoice\CreditNote;
 
+use Pondersource\Invoice\AllowanceCharge;
+use Pondersource\Invoice\Documents\AdditionalDocumentReference;
+use Pondersource\Invoice\Documents\ContractDocumentReference;
 use Sabre\Xml\Writer;
 use Sabre\Xml\XmlSerializable;
 use Pondersource\Invoice\Account\Delivery;
 use Pondersource\Invoice\Party\Party;
-use Pondersource\Invoice\Invoice\InvoiceLine;
+use Pondersource\Invoice\CreditNote\CreditNoteLine;
 use Pondersource\Invoice\Legal\LegalMonetaryTotal;
 use Pondersource\Invoice\Payment\PaymentTerms;
-use Pondersource\Invoice\Invoice\InvoicePeriod;
+use Pondersource\Invoice\CreditNote\CreditNotePeriod;
 use Pondersource\Invoice\Payment\PaymentMeans;
 use Pondersource\Invoice\Payment\OrderReference;
 use Pondersource\Invoice\Tax\TaxTotal;
@@ -17,12 +20,12 @@ use Pondersource\Invoice\Schema;
 
 use DateTime as DateTime;
 use InvalidArgumentException as InvalidArgumentException;
-use Pondersource\Invoice\Invoice\InvoiceTypeCode;
+use Pondersource\Invoice\CreditNote\CreditNoteTypeCode;
 use Sabre\Xml\Reader;
 use Sabre\Xml\XmlDeserializable;
 
 
-class Invoice implements XmlSerializable, XmlDeserializable
+class CreditNote implements XmlSerializable, XmlDeserializable
 {
     private $UBLVersionID = '2.1';
     private $customizationID = '1.0';
@@ -30,7 +33,7 @@ class Invoice implements XmlSerializable, XmlDeserializable
     private $id;
     private $copyIndicator;
     private $issueDate;
-    private $invoiceTypeCode = InvoiceTypeCode::INVOICE;
+    private $creditnoteTypeCode = CreditNoteTypeCode::CREDIT_NOTE;
     private $note;
     private $taxPointDate;
     private $dueDate;
@@ -41,13 +44,13 @@ class Invoice implements XmlSerializable, XmlDeserializable
     private $paymentMeans;
     private $taxTotal;
     private $legalMonetaryTotal;
-    private $invoiceLines;
+    private $creditnoteLines;
     private $allowanceCharges;
     private $additionalDocumentReferences;
     private $documentCurrencyCode = 'EUR';
     private $buyerReference;
     private $accountingCostCode;
-    private $invoicePeriod;
+    private $creditnotePeriod;
     private $delivery;
     private $orderReference;
     private $contractDocumentReference;
@@ -63,9 +66,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
     /**
      * @param string $UBLVersionID
      * eg. '2.0', '2.1', '2.2', ...
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setUBLVersionID(?string $UBLVersionID): Invoice
+    public function setUBLVersionID(?string $UBLVersionID): CreditNote
     {
         $this->UBLVersionID = $UBLVersionID;
         return $this;
@@ -81,9 +84,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param mixed $id
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setId(?string $id): Invoice
+    public function setId(?string $id): CreditNote
     {
         $this->id = $id;
         return $this;
@@ -99,9 +102,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param mixed $customizationID
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setCustomizationID(?string $customizationID): Invoice
+    public function setCustomizationID(?string $customizationID): CreditNote
     {
         $this->customizationID = $customizationID;
         return $this;
@@ -117,9 +120,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param mixed $customizationID
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setProfileID(?string $profileID): Invoice
+    public function setProfileID(?string $profileID): CreditNote
     {
         $this->profileID = $profileID;
         return $this;
@@ -135,9 +138,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param bool $copyIndicator
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setCopyIndicator(bool $copyIndicator): Invoice
+    public function setCopyIndicator(bool $copyIndicator): CreditNote
     {
         $this->copyIndicator = $copyIndicator;
         return $this;
@@ -153,9 +156,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param DateTime $issueDate
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setIssueDate(DateTime $issueDate): Invoice
+    public function setIssueDate(DateTime $issueDate): CreditNote
     {
         $this->issueDate = $issueDate;
         return $this;
@@ -171,9 +174,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param DateTime $dueDate
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setDueDate(DateTime $dueDate): Invoice
+    public function setDueDate(DateTime $dueDate): CreditNote
     {
         $this->dueDate = $dueDate;
         return $this;
@@ -181,9 +184,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param mixed $currencyCode
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setDocumentCurrencyCode(string $currencyCode = 'EUR'): Invoice
+    public function setDocumentCurrencyCode(string $currencyCode = 'EUR'): CreditNote
     {
         $this->documentCurrencyCode = $currencyCode;
         return $this;
@@ -192,19 +195,19 @@ class Invoice implements XmlSerializable, XmlDeserializable
     /**
      * @return string
      */
-    public function getInvoiceTypeCode(): ?string
+    public function getCreditNoteTypeCode(): ?string
     {
-        return $this->invoiceTypeCode;
+        return $this->creditnoteTypeCode;
     }
 
     /**
-     * @param string $invoiceTypeCode
-     * See also: src/InvoiceTypeCode.php
-     * @return Invoice
+     * @param string $creditnoteTypeCode
+     * See also: src/CreditNoteTypeCode.php
+     * @return CreditNote
      */
-    public function setInvoiceTypeCode(string $invoiceTypeCode): Invoice
+    public function setCreditNoteTypeCode(string $creditnoteTypeCode): CreditNote
     {
-        $this->invoiceTypeCode = $invoiceTypeCode;
+        $this->creditnoteTypeCode = $creditnoteTypeCode;
         return $this;
     }
 
@@ -218,7 +221,7 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param string $note
-     * @return Invoice
+     * @return CreditNote
      */
     public function setNote(string $note)
     {
@@ -236,9 +239,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param DateTime $taxPointDate
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setTaxPointDate(DateTime $taxPointDate): Invoice
+    public function setTaxPointDate(DateTime $taxPointDate): CreditNote
     {
         $this->taxPointDate = $taxPointDate;
         return $this;
@@ -254,9 +257,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param PaymentTerms $paymentTerms
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setPaymentTerms(PaymentTerms $paymentTerms): Invoice
+    public function setPaymentTerms(PaymentTerms $paymentTerms): CreditNote
     {
         $this->paymentTerms = $paymentTerms;
         return $this;
@@ -272,9 +275,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param Party $accountingSupplierParty
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setAccountingSupplierParty(Party $accountingSupplierParty): Invoice
+    public function setAccountingSupplierParty(Party $accountingSupplierParty): CreditNote
     {
         $this->accountingSupplierParty = $accountingSupplierParty;
         return $this;
@@ -290,9 +293,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param string $supplierAssignedAccountID
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setSupplierAssignedAccountID(string $supplierAssignedAccountID): Invoice
+    public function setSupplierAssignedAccountID(string $supplierAssignedAccountID): CreditNote
     {
         $this->supplierAssignedAccountID = $supplierAssignedAccountID;
         return $this;
@@ -308,9 +311,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param Party $accountingCustomerParty
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setAccountingCustomerParty(Party $accountingCustomerParty): Invoice
+    public function setAccountingCustomerParty(Party $accountingCustomerParty): CreditNote
     {
         $this->accountingCustomerParty = $accountingCustomerParty;
         return $this;
@@ -326,9 +329,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param PaymentMeans $paymentMeans
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setPaymentMeans(PaymentMeans $paymentMeans): Invoice
+    public function setPaymentMeans(PaymentMeans $paymentMeans): CreditNote
     {
         $this->paymentMeans = $paymentMeans;
         return $this;
@@ -344,9 +347,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param TaxTotal $taxTotal
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setTaxTotal(TaxTotal $taxTotal): Invoice
+    public function setTaxTotal(TaxTotal $taxTotal): CreditNote
     {
         $this->taxTotal = $taxTotal;
         return $this;
@@ -362,29 +365,29 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param LegalMonetaryTotal $legalMonetaryTotal
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setLegalMonetaryTotal(LegalMonetaryTotal $legalMonetaryTotal): Invoice
+    public function setLegalMonetaryTotal(LegalMonetaryTotal $legalMonetaryTotal): CreditNote
     {
         $this->legalMonetaryTotal = $legalMonetaryTotal;
         return $this;
     }
 
     /**
-     * @return InvoiceLine[]
+     * @return CreditNoteLine[]
      */
-    public function getInvoiceLines(): ?array
+    public function getCreditNoteLines(): ?array
     {
-        return $this->invoiceLines;
+        return $this->creditnoteLines;
     }
 
     /**
-     * @param InvoiceLine[] $invoiceLines
-     * @return Invoice
+     * @param CreditNoteLine[] $creditnoteLines
+     * @return CreditNote
      */
-    public function setInvoiceLines(array $invoiceLines): Invoice
+    public function setCreditNoteLines(array $creditnoteLines): CreditNote
     {
-        $this->invoiceLines = $invoiceLines;
+        $this->creditnoteLines = $creditnoteLines;
         return $this;
     }
 
@@ -398,9 +401,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param AllowanceCharge[] $allowanceCharges
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setAllowanceCharges(AllowanceCharge $allowanceCharges): Invoice
+    public function setAllowanceCharges(AllowanceCharge $allowanceCharges): CreditNote
     {
         $this->allowanceCharges = $allowanceCharges;
         return $this;
@@ -416,9 +419,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param AdditionalDocumentReference $additionalDocumentReference
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setAdditionalDocumentReference(AdditionalDocumentReference $additionalDocumentReferences): Invoice
+    public function setAdditionalDocumentReference(AdditionalDocumentReference $additionalDocumentReferences): CreditNote
     {
         $this->additionalDocumentReferences = $additionalDocumentReferences;
         return $this;
@@ -426,9 +429,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param string $buyerReference
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setByerReference(string $buyerReference): Invoice
+    public function setByerReference(string $buyerReference): CreditNote
     {
         $this->buyerReference = $buyerReference;
         return $this;
@@ -452,29 +455,29 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param mixed $accountingCostCode
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setAccountingCostCode(string $accountingCostCode): Invoice
+    public function setAccountingCostCode(string $accountingCostCode): CreditNote
     {
         $this->accountingCostCode = $accountingCostCode;
         return $this;
     }
 
     /**
-     * @return InvoicePeriod
+     * @return CreditNotePeriod
      */
-    public function getInvoicePeriod(): ?InvoicePeriod
+    public function getCreditNoteLinePeriod(): ?CreditNotePeriod
     {
-        return $this->invoicePeriod;
+        return $this->creditnotePeriod;
     }
 
     /**
-     * @param InvoicePeriod $invoicePeriod
-     * @return Invoice
+     * @param CreditNotePeriod $creditnotePeriod
+     * @return CreditNote
      */
-    public function setInvoicePeriod(InvoicePeriod $invoicePeriod): Invoice
+    public function setCreditNotePeriod(CreditNotePeriod $creditnotePeriod): CreditNote
     {
-        $this->invoicePeriod = $invoicePeriod;
+        $this->creditnotePeriod = $creditnotePeriod;
         return $this;
     }
 
@@ -488,9 +491,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param Delivery $delivery
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setDelivery(Delivery $delivery): Invoice
+    public function setDelivery(Delivery $delivery): CreditNote
     {
         $this->delivery = $delivery;
         return $this;
@@ -506,9 +509,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param OrderReference $orderReference
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setOrderReference(OrderReference $orderReference): Invoice
+    public function setOrderReference(OrderReference $orderReference): CreditNote
     {
         $this->orderReference = $orderReference;
         return $this;
@@ -524,9 +527,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
 
     /**
      * @param string $ContractDocumentReference
-     * @return Invoice
+     * @return CreditNote
      */
-    public function setContractDocumentReference(ContractDocumentReference $contractDocumentReference): Invoice
+    public function setContractDocumentReference(ContractDocumentReference $contractDocumentReference): CreditNote
     {
         $this->contractDocumentReference = $contractDocumentReference;
         return $this;
@@ -541,31 +544,31 @@ class Invoice implements XmlSerializable, XmlDeserializable
     public function validate()
     {
         if ($this->id === null) {
-            throw new InvalidArgumentException('Missing invoice id');
+            throw new InvalidArgumentException('Missing creditnote id');
         }
 
         if (!$this->issueDate instanceof DateTime) {
-            throw new InvalidArgumentException('Invalid invoice issueDate');
+            throw new InvalidArgumentException('Invalid creditnote issueDate');
         }
 
-        if ($this->invoiceTypeCode === null) {
-            throw new InvalidArgumentException('Missing invoice invoiceTypeCode');
+        if ($this->creditnoteTypeCode === null) {
+            throw new InvalidArgumentException('Missing creditnote creditnoteTypeCode');
         }
 
         if ($this->accountingSupplierParty === null) {
-            throw new InvalidArgumentException('Missing invoice accountingSupplierParty');
+            throw new InvalidArgumentException('Missing creditnote accountingSupplierParty');
         }
 
         if ($this->accountingCustomerParty === null) {
-            throw new InvalidArgumentException('Missing invoice accountingCustomerParty');
+            throw new InvalidArgumentException('Missing creditnote accountingCustomerParty');
         }
 
-        if ($this->invoiceLines === null) {
-            throw new InvalidArgumentException('Missing invoice lines');
+        if ($this->creditnoteLines === null) {
+            throw new InvalidArgumentException('Missing creditnote lines');
         }
 
         if ($this->legalMonetaryTotal === null) {
-            throw new InvalidArgumentException('Missing invoice LegalMonetaryTotal');
+            throw new InvalidArgumentException('Missing creditnote LegalMonetaryTotal');
         }
     }
 
@@ -601,9 +604,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
             ]);
         }
 
-        if ($this->invoiceTypeCode !== null) {
+        if ($this->creditnoteTypeCode !== null) {
             $writer->write([
-                Schema::CBC . 'InvoiceTypeCode' => $this->invoiceTypeCode
+                Schema::CBC . 'CreditNoteTypeCode' => $this->creditnoteTypeCode
             ]);
         }
 
@@ -641,9 +644,9 @@ class Invoice implements XmlSerializable, XmlDeserializable
             ]);
         }
 
-        if ($this->invoicePeriod != null) {
+        if ($this->creditnotePeriod != null) {
             $writer->write([
-                Schema::CAC . 'InvoicePeriod' => $this->invoicePeriod
+                Schema::CAC . 'CreditNotePeriod' => $this->creditnotePeriod
             ]);
         }
 
@@ -711,121 +714,126 @@ class Invoice implements XmlSerializable, XmlDeserializable
             Schema::CAC . 'LegalMonetaryTotal' => $this->legalMonetaryTotal
         ]);
 
-        foreach ($this->invoiceLines as $invoiceLine) {
+        foreach ($this->creditnoteLines as $creditnote) {
             $writer->write([
-                Schema::CAC . 'InvoiceLine' => $invoiceLine
+                Schema::CAC . 'CreditNoteLine' => $creditnote
             ]);
         }
     }
 
     /**
-     * Deserialize Invoice
+     * Deserialize CreditNote
      */
     static function xmlDeserialize(Reader $reader)
     {
-        $invoice = new self();
+
+
+
+        $creditnote = new self();
 
         $keyValue = Sabre\Xml\Element\KeyValue::xmlDeserialize($reader);
 
         if (isset($keyValue[Schema::CBC . 'UBLVersionID'])) {
-            $invoice->UBLVersionID = $keyValue[Schema::CBC . 'UBLVersionID'];
+            $creditnote->UBLVersionID = $keyValue[Schema::CBC . 'UBLVersionID'];
         }
 
         if (isset($keyValue[Schema::CBC . 'CustomizationID'])) {
-            $invoice->customizationID = $keyValue[Schema::CBC . 'CustomizationID'];
+            $creditnote->customizationID = $keyValue[Schema::CBC . 'CustomizationID'];
         }
 
         if (isset($keyValue[Schema::CBC . 'ProfileID'])) {
-            $invoice->profileID = $keyValue[Schema::CBC . 'ProfileID'];
+            $creditnote->profileID = $keyValue[Schema::CBC . 'ProfileID'];
         }
 
         if (isset($keyValue[Schema::CBC . 'ID'])) {
-            $invoice->id = $keyValue[Schema::CBC . 'ID'];
+            $creditnote->id = $keyValue[Schema::CBC . 'ID'];
         }
 
         if (isset($keyValue[Schema::CBC . 'CopyIndicator'])) {
-            $invoice->copyIndicator = $keyValue[Schema::CBC . 'CopyIndicator'];
+            $creditnote->copyIndicator = $keyValue[Schema::CBC . 'CopyIndicator'];
         }
 
         if (isset($keyValue[Schema::CBC . 'IssueDate'])) {
-            $invoice->issueDate = $keyValue[Schema::CBC . 'IssueDate'];
+            $creditnote->issueDate = $keyValue[Schema::CBC . 'IssueDate'];
         }
 
         if (isset($keyValue[Schema::CBC . 'DueDate'])) {
-            $invoice->dueDate = $keyValue[Schema::CBC . 'DueDate'];
+            $creditnote->dueDate = $keyValue[Schema::CBC . 'DueDate'];
         }
 
-        if (isset($keyValue[Schema::CBC . 'InvoiceTypeCode'])) {
-            $invoice->invoiceTypeCode = $keyValue[Schema::CBC . 'InvoiceTypeCode'];
+        if (isset($keyValue[Schema::CBC . 'CreditNoteTypeCode'])) {
+            $creditnote->creditnoteTypeCode = $keyValue[Schema::CBC . 'CreditNoteTypeCode'];
         }
 
         if (isset($keyValue[Schema::CBC . 'Note'])) {
-            $invoice->note = $keyValue[Schema::CBC . 'Note'];
+            $creditnote->note = $keyValue[Schema::CBC . 'Note'];
         }
 
         if (isset($keyValue[Schema::CBC . 'TaxPointDate'])) {
-            $invoice->taxPointDate = $keyValue[Schema::CBC . 'TaxPointDate'];
+            $creditnote->taxPointDate = $keyValue[Schema::CBC . 'TaxPointDate'];
         }
 
         if (isset($keyValue[Schema::CBC . 'DocumentCurrencyCode'])) {
-            $invoice->documentCurrencyCode = $keyValue[Schema::CBC . 'DocumentCurrencyCode'];
+            $creditnote->documentCurrencyCode = $keyValue[Schema::CBC . 'DocumentCurrencyCode'];
         }
 
         if (isset($keyValue[Schema::CAC . 'ContractDocumentReference'])) {
-            $invoice->contractDocumentReference = $keyValue[Schema::CAC . 'ContractDocumentReference'];
+            $creditnote->contractDocumentReference = $keyValue[Schema::CAC . 'ContractDocumentReference'];
         }
 
-        if (isset($keyValue[Schema::CAC . 'InvoicePeriod'])) {
-            $invoice->invoicePeriod = $keyValue[Schema::CAC . 'InvoicePeriod'];
+        if (isset($keyValue[Schema::CAC . 'CreditNotePeriod'])) {
+            $creditnote->creditnotePeriod = $keyValue[Schema::CAC . 'CreditNotePeriod'];
         }
 
         if (isset($keyValue[Schema::CAC . 'OrderReference'])) {
-            $invoice->orderReference = $keyValue[Schema::CAC . 'OrderReference'];
+            $creditnote->orderReference = $keyValue[Schema::CAC . 'OrderReference'];
         }
 
         if (isset($keyValue[Schema::CAC . 'AdditionalDocumentReference'])) {
-            $invoice->additionalDocumentReferences = $keyValue[Schema::CAC . 'AdditionalDocumentReference'];
+            $creditnote->additionalDocumentReferences = $keyValue[Schema::CAC . 'AdditionalDocumentReference'];
         }
 
         if (isset($keyValue[Schema::CAC . 'AdditionalDocumentReference'])) {
-            $invoice->additionalDocumentReferences = $keyValue[Schema::CAC . 'AdditionalDocumentReference'];
+            $creditnote->additionalDocumentReferences = $keyValue[Schema::CAC . 'AdditionalDocumentReference'];
         }
 
-        if (isset($keyValue[Schema::CAC . 'AccountingSupplierParty' . [Schema::CAC . "Party"]])) {
-            $invoice->accountingSupplierParty = $keyValue[Schema::CAC . 'AccountingSupplierParty' . [Schema::CAC . "Party"]];
-        }
 
-        if (isset($keyValue[Schema::CAC . 'AccountingCustomerParty' . [Schema::CAC . "Party"]])) {
-            $invoice->AccountingCustomerParty = $keyValue[Schema::CAC . 'AccountingCustomerParty' . [Schema::CAC . "Party"]];
-        }
+//
+//        if (isset($keyValue[Schema::CAC . 'AccountingSupplierParty' . [Schema::CAC . "Party"]])) {
+//            $creditnote->accountingSupplierParty = $keyValue[Schema::CAC . 'AccountingSupplierParty' . [Schema::CAC . "Party"]];
+//        }
+//
+//        if (isset($keyValue[Schema::CAC . 'AccountingCustomerParty' . [Schema::CAC . "Party"]])) {
+//            $creditnote->AccountingCustomerParty = $keyValue[Schema::CAC . 'AccountingCustomerParty' . [Schema::CAC . "Party"]];
+//        }
 
         if (isset($keyValue[Schema::CAC . 'Delivery'])) {
-            $invoice->delivery = $keyValue[Schema::CAC . 'Delivery'];
+            $creditnote->delivery = $keyValue[Schema::CAC . 'Delivery'];
         }
 
         if (isset($keyValue[Schema::CAC . 'PaymentMeans'])) {
-            $invoice->paymentMeans = $keyValue[Schema::CAC . 'PaymentMeans'];
+            $creditnote->paymentMeans = $keyValue[Schema::CAC . 'PaymentMeans'];
         }
 
         if (isset($keyValue[Schema::CAC . 'PaymentTerms'])) {
-            $invoice->paymentTerms = $keyValue[Schema::CAC . 'PaymentTerms'];
+            $creditnote->paymentTerms = $keyValue[Schema::CAC . 'PaymentTerms'];
         }
 
         if (isset($keyValue[Schema::CAC . 'AllowanceCharge'])) {
-            $invoice->allowanceCharges = $keyValue[Schema::CAC . 'AllowanceCharge'];
+            $creditnote->allowanceCharges = $keyValue[Schema::CAC . 'AllowanceCharge'];
         }
 
         if (isset($keyValue[Schema::CAC . 'TaxTotal'])) {
-            $invoice->taxTotal = $keyValue[Schema::CAC . 'TaxTotal'];
+            $creditnote->taxTotal = $keyValue[Schema::CAC . 'TaxTotal'];
         }
 
         if (isset($keyValue[Schema::CAC . 'LegalMonetaryTotal'])) {
-            $invoice->legalMonetaryTotal = $keyValue[Schema::CAC . 'LegalMonetaryTotal'];
+            $creditnote->legalMonetaryTotal = $keyValue[Schema::CAC . 'LegalMonetaryTotal'];
         }
 
-        if (isset($keyValue[Schema::CAC . 'InnvoiceLine'])) {
-            $invoice->invoiceLines = $keyValue[Schema::CAC . 'InnvoiceLine'];
+        if (isset($keyValue[Schema::CAC . 'CreditNoteLine'])) {
+            $creditnote->creditnoteLines = $keyValue[Schema::CAC . 'CreditNoteLine'];
         }
-        return $invoice;
+        return $creditnote;
     }
 }
