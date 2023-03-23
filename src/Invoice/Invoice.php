@@ -2,6 +2,7 @@
 
 namespace Pondersource\Invoice\Invoice;
 
+use Pondersource\Invoice\AllowanceCharge;
 use Sabre\Xml\Writer;
 use Sabre\Xml\XmlSerializable;
 use Pondersource\Invoice\Account\Delivery;
@@ -400,7 +401,7 @@ class Invoice implements XmlSerializable, XmlDeserializable
      * @param AllowanceCharge[] $allowanceCharges
      * @return Invoice
      */
-    public function setAllowanceCharges(AllowanceCharge $allowanceCharges): Invoice
+    public function setAllowanceCharges(array $allowanceCharges): Invoice
     {
         $this->allowanceCharges = $allowanceCharges;
         return $this;

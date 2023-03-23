@@ -2,6 +2,7 @@
 
 namespace Pondersource\Invoice;
 
+use Pondersource\Invoice\Invoice\GenerateInvoice;
 use Sabre\Xml\Writer;
 use Sabre\Xml\XmlSerializable;
 use Pondersource\Invoice\Tax\TaxCategory;
@@ -25,7 +26,7 @@ class AllowanceCharge implements XmlSerializable, XmlDeserializable
      */
     public function isChargeIndicator(): ?bool
     {
-        return $this->$chargeIndicator;
+        return $this->chargeIndicator;
     }
 
     /**
@@ -146,7 +147,7 @@ class AllowanceCharge implements XmlSerializable, XmlDeserializable
     public function xmlSerialize(Writer $writer)
     {
         $writer->write([
-           Schema::CBC . 'ChargeIndicator' => $this->chargeIndicator
+           Schema::CBC . 'ChargeIndicator' => $this->chargeIndicator ? '1' : '0'
         ]);
 
         if ($this->allowanceChargeReasonCode !== null) {
