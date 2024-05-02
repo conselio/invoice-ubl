@@ -104,13 +104,13 @@ class Contact implements XmlSerializable, XmlDeserializable
         
         if ($this->telefax !== null) {
             $writer->write([
-                Schema::CBC . 'Telefax' . $this->telefax
+                Schema::CBC . 'Telefax' => $this->telefax
             ]);
         }
 
         if ($this->electronicMail !== null) {
             $writer->write([
-                Schema::CBC . 'ElectronicMail' . $this->electronicMail
+                Schema::CBC . 'ElectronicMail' => $this->electronicMail
             ]);
         }
     }
