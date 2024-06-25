@@ -109,9 +109,14 @@ class Item implements XmlSerializable, XmlDeserializable
     public function xmlSerialize(Writer $writer)
     {
         $writer->write([
-            Schema::CBC . 'Description' => $this->description,
             Schema::CBC . 'Name' => $this->name
         ]);
+
+        if(!empty($this->description)) {
+            $writer->write([
+                Schema::CBC . 'Description' => $this->description
+            ]);
+        }
 
         if (!empty($this->getBuyersItemIdentification)) {
             $writer->write([
